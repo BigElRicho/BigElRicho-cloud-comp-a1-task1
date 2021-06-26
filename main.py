@@ -1,7 +1,7 @@
 import datetime
 
 from flask import Flask, render_template
-#from google.cloud import datastore
+from google.cloud import datastore
 
 app = Flask(__name__)
 
@@ -15,18 +15,11 @@ if __name__ == '__main__':
     # App Engine itself will serve those files as configured in app.yaml.
     app.run(debug=True)
 
-#datastore_client = datastore.Client()
+datastore_client = datastore.Client()
 
 @app.route('/') 
 def home(): 
     return render_template('home.html') 
-    # #Store the current access time in Datastore.
-    # store_time(datetime.datetime.now())
-
-    # # fetch the most recent 10 access times from datastore.
-    # times = fetch_times(10)
-
-    #return render_template('index.html'),times=times) 
 
 @app.route('/login/')
 def login():
@@ -40,22 +33,33 @@ def register():
 def forum():
     return render_template('forum.html')
 
-# @app.route('/user/')
-# def user():
-#     return render_template('user.html')
+@app.route('/user/')
+def user():
+    return render_template('user.html')
 
-# def store_time(dt):
-#     entity = datastore.Entity(key=datastore_client.key('visit'))
-#     entity.update({
-#         'timestamp': dt
-#     })
+@app.route('/pageVisits/')
+def pageVisits():
+     #Store the current access time in Datastore.
+    store_time(datetime.datetime.now())
 
-#     datastore_client.put(entity)
+    # fetch the most recent 10 access times from datastore.
+    times = fetch_times(10)
 
-# def fetch_times(limit):
-#     query = datastore_client.query(kind='visit')
-#     query.order = ['-timestamp']
+    return render_template('pageVisits.html',times=times) 
 
-#     times = query.fetch(limit=limit)
 
-#     return times
+def store_time(dt):
+    entity = datastore.Entity(key=datastore_client.key('visit'))
+    entity.update({
+        'timestamp': dt
+    })
+
+    datastore_client.put(entity)
+
+def fetch_times(limit):
+    query = datastore_client.query(kind='visit')
+    query.order = ['-timestamp']
+
+    times = query.fetch(limit=limit)
+
+    return times
