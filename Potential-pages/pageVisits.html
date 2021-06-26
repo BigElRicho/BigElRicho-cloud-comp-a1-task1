@@ -1,0 +1,11 @@
+{% extends "index.html" %}
+{% block content %}
+  <div class="index">
+      <h1>Task one: Homepage</h1>
+
+      <h2>Last 10 visits</h2>
+      {% for time in times %}
+      <p>{{ time['timestamp'] }}</p>
+      {% endfor %}
+  </div>
+{% endblock %}

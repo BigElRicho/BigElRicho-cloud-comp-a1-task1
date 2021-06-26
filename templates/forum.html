@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="forum">
+    <h1>Task One: Forum Page</h1>
+    <!-- User info area-->
+    <div class="forumUserArea">
+        <p class="usertextDisplay">Username goes here</p>
+        <img src="">
+    </div>
+    <!-- Message posting area-->
+    <div class="forumMessagePostingArea">
+        <form action method="POST">
+            <lable>Forum Post</lable>
+            <br><br>
+            <label>Subject</label>
+            <Input type="text" required autofocus>
+            <br><br>
+            <label>Message</label>
+            <input type="text" required>
+            <br><br>
+            <label>Image Upload</label>
+            <input type="image">
+            <br><br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+    <!--Forum message display area-->
+    <div class="forumMessageDisplayArea>">
+        <p>The messages will be displayed here</p>
+    </div>
+</div>
+<a href="{{url_for('login')}}">Logout</a>
+{% endblock %}
