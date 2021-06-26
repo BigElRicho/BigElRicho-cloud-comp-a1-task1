@@ -1,9 +1,10 @@
 import datetime
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request, flash
 from google.cloud import datastore
 
 app = Flask(__name__)
+app.secret_key = "Julian"
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App 
@@ -21,8 +22,38 @@ datastore_client = datastore.Client()
 def home(): 
     return render_template('home.html') 
 
-@app.route('/login/')
+        
+@app.route('/login/', methods=['GET','POST'])
 def login():
+    if request.method == 'POST':
+        message1 = 'query finished'
+        userList = getIDs()
+        # for entity in userList:
+        #     if entity.
+        return render_template('login.html', message1=message1, userList=userList)
+            # ID = request.form['ID']
+            # message1 = "ID exists."
+            # message2 =  "No ID found"
+
+            # if ID == None:
+            #     return render_template('login.html')
+            # elif ID != None and isID(ID):
+            #     return render_template('login.html', message1=message1)
+            # elif ID != None and isID(ID) == False:
+            #     return render_template('login.html', message1=message2)
+            
+                
+            # message1 = "You said " + ID
+            # message2 = 'Thanks for the greeting!'
+            # if ID == 'yo':
+            #     return render_template('login.html', message1=message1, message2=message2)
+            # elif ID == 'fuck you':
+            #     message1 = 'hey thats not nice'
+            #     message2 = 'maybe try typing something nicer'
+            #     return render_template('login.html', message1=message1, message2=message2)
+            # elif ID == None:
+            #     return render_template('login.html')
+
     return render_template('login.html')
 
 @app.route('/register/')
@@ -63,3 +94,16 @@ def fetch_times(limit):
     times = query.fetch(limit=limit)
 
     return times
+
+def isID(ID):
+    query = datastore_client.query(kind='user')
+    query.add_filter("ID", "=", ID)
+    if query.fetch(ID):
+        return True
+    else:
+        return False
+
+def getIDs():
+    query = datastore_client.query(kind="user")
+    results = list(query.fetch())
+    return results
