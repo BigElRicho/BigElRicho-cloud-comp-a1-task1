@@ -13,9 +13,15 @@
         </form>
 
         <p>{{message1}}</p>
-        {% for x in userList %}
-        <p>{{x}}</p>
-        {%endfor%}
+        <!-- Below works. -->
+        <!-- {% for x in userList %}
+            {% if x['user_name']=='Julian Rich0'%}
+            <p>{{ "Welcome " + x['user_name'] }}</p>
+            {%endif%}
+        {% endfor %} -->
+
+        <p>{{userMsg}}</p>
+        <p>password status: {{pwdMsg}}</p>
         
     </div>
 {% endblock %}

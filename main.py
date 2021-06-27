@@ -1,3 +1,4 @@
+from collections import UserList
 import datetime
 
 from flask import Flask, render_template, request, flash
@@ -22,37 +23,50 @@ datastore_client = datastore.Client()
 def home(): 
     return render_template('home.html') 
 
-        
 @app.route('/login/', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
         message1 = 'query finished'
-        userList = getIDs()
-        # for entity in userList:
-        #     if entity.
-        return render_template('login.html', message1=message1, userList=userList)
-            # ID = request.form['ID']
-            # message1 = "ID exists."
-            # message2 =  "No ID found"
-
-            # if ID == None:
-            #     return render_template('login.html')
-            # elif ID != None and isID(ID):
-            #     return render_template('login.html', message1=message1)
-            # elif ID != None and isID(ID) == False:
-            #     return render_template('login.html', message1=message2)
-            
-                
-            # message1 = "You said " + ID
-            # message2 = 'Thanks for the greeting!'
-            # if ID == 'yo':
-            #     return render_template('login.html', message1=message1, message2=message2)
-            # elif ID == 'fuck you':
-            #     message1 = 'hey thats not nice'
-            #     message2 = 'maybe try typing something nicer'
-            #     return render_template('login.html', message1=message1, message2=message2)
-            # elif ID == None:
-            #     return render_template('login.html')
+        pwdMsg = "unknown"
+        userMsg = "-"
+        loginValid = False
+        IDValid = False
+        passwordValid = False
+        ID = request.form['ID']
+        pwd = request.form['password']
+        #userID = getID(ID)
+        #print("userID: " + ID)
+        if ID == "":
+            userMsg = "No ID provided."
+        else:
+            if getID(ID) == None:
+                print("UserID not known.")
+                userMsg = "UserID not known."
+            else:
+                print("A matching ID was found.")
+                userMsg = "Welcome " + getID(ID)
+                IDValid = True
+        if pwd == "":
+            pwdMsg = "No password given"
+        else:
+            if doesPasswordMatch(ID,pwd):
+                pwdMsg = "password correct."
+                passwordValid = True
+            else:
+                pwdMsg = "password incorrect"
+        if(IDValid == True and passwordValid == True):
+            loginValid == True
+        # Below needs to be replaced with a redirect method.
+        if(loginValid==True):
+            return render_template('login.html', 
+            message1=message1, 
+            userMsg=userMsg, 
+            pwdMsg=pwdMsg)
+        else:
+            return render_template('login.html', 
+            message1=message1, 
+            userMsg=userMsg, 
+            pwdMsg=pwdMsg)
 
     return render_template('login.html')
 
@@ -90,20 +104,33 @@ def store_time(dt):
 def fetch_times(limit):
     query = datastore_client.query(kind='visit')
     query.order = ['-timestamp']
-
     times = query.fetch(limit=limit)
-
     return times
 
-def isID(ID):
+def getID(ID):
     query = datastore_client.query(kind='user')
     query.add_filter("ID", "=", ID)
-    if query.fetch(ID):
-        return True
-    else:
-        return False
+    result = query.fetch()
+    for IDs in result:
+        print(IDs['ID'])
+        ID=IDs['ID']
+    return ID
+
+def doesPasswordMatch(ID, password):
+    query = datastore_client.query(kind="user")
+    query.add_filter("ID","=",ID)
+    result = query.fetch()
+    for IDs in result:
+        print(IDs['ID'] + IDs['password'])
+        print("ID given: "+ ID + " Password given: " + password)
+        if IDs['password'] == password:
+            return True
+        else:
+            return False
+    
 
 def getIDs():
     query = datastore_client.query(kind="user")
-    results = list(query.fetch())
+    query.order = ["ID"]
+    results = query.fetch()
     return results
