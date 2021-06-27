@@ -2,6 +2,7 @@
 {% block content %}
     <div class="user">
         <h1>Task One: User page</h1>
+        <p>Current User:{{userMsg}}</p>
         <form action method="POST">
             <label>Change password</label>
             <br>
@@ -16,5 +17,10 @@
             <br>
             <input type="submit" value="Change password">
         </form>
+
+        <div class=userPostEditArea>
+            <h2>Message Post Area</h2>
+
+        </div>
     </div>
 {% endblock %}

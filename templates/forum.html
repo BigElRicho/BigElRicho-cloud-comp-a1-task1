@@ -9,17 +9,17 @@
     </div>
     <!-- Message posting area-->
     <div class="forumMessagePostingArea">
-        <form action method="POST">
+        <form action="" method="POST">
             <lable>Forum Post</lable>
             <br><br>
             <label>Subject</label>
-            <Input type="text" required autofocus>
+            <Input type="text" id="subject" required autofocus>
             <br><br>
             <label>Message</label>
-            <input type="text" required>
+            <input type="text" id="message" required>
             <br><br>
             <label>Image Upload</label>
-            <input type="file">
+            <input type="file" id="image">
             <br><br>
             <input type="submit" value="Submit">
         </form>
@@ -29,5 +29,6 @@
         <p>The messages will be displayed here</p>
     </div>
 </div>
-<a href="{{url_for('login')}}">Logout</a>
+<!-- Below clears the id from the session variable -->
+<a onclick="{{session.pop('ID',None)}}" id="logout-link" href="{{url_for('login')}}">Logout</a>
 {% endblock %}

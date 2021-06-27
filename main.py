@@ -1,7 +1,7 @@
 from collections import UserList
 import datetime
 
-from flask import Flask, render_template, request, flash
+from flask import Flask, render_template, request, session
 from google.cloud import datastore
 
 app = Flask(__name__)
@@ -25,10 +25,16 @@ def home():
 
 @app.route('/login/', methods=['GET','POST'])
 def login():
+    if session.get('ID') is not None:
+        print("session id:" + session['ID'])
+    elif session.get('ID') is None:
+        print("No session ID exists atm.")
+    print()
     if request.method == 'POST':
         message1 = 'query finished'
         pwdMsg = "unknown"
         userMsg = "-"
+        sessionMsg = "-"
         loginValid = False
         IDValid = False
         passwordValid = False
@@ -55,18 +61,29 @@ def login():
             else:
                 pwdMsg = "password incorrect"
         if(IDValid == True and passwordValid == True):
-            loginValid == True
+            print("loginvalid = true")
+            loginValid = True
+            print(loginValid)
         # Below needs to be replaced with a redirect method.
         if(loginValid==True):
+            session['ID'] = ID
+            print("session['ID']= " + session['ID'])
+            sessionMsg = session['ID']
             return render_template('login.html', 
             message1=message1, 
             userMsg=userMsg, 
-            pwdMsg=pwdMsg)
+            pwdMsg=pwdMsg,
+            sessionMsg=sessionMsg)
         else:
+            # if session['ID']:
+            #     print(session['ID'])
+            # else:
+            #     print ("Session['ID'] is not there.")
             return render_template('login.html', 
             message1=message1, 
             userMsg=userMsg, 
-            pwdMsg=pwdMsg)
+            pwdMsg=pwdMsg,
+            sessionMsg=sessionMsg)
 
     return render_template('login.html')
 
@@ -80,7 +97,13 @@ def forum():
 
 @app.route('/user/')
 def user():
-    return render_template('user.html')
+    userMsg = "No user currently logged in."
+    if 'ID' in session:
+        userID = session.get('ID')
+        userMsg = userID
+    
+    return render_template('user.html',
+    userMsg=userMsg)
 
 @app.route('/pageVisits/')
 def pageVisits():
@@ -128,7 +151,6 @@ def doesPasswordMatch(ID, password):
         else:
             return False
     
-
 def getIDs():
     query = datastore_client.query(kind="user")
     query.order = ["ID"]
