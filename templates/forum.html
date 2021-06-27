@@ -4,7 +4,7 @@
     <h1>Task One: Forum Page</h1>
     <!-- User info area-->
     <div class="forumUserArea">
-        <p class="usertextDisplay">Username goes here</p>
+        <a href="{{url_for('login')}}">{{username}}</a>
         <img src="">
     </div>
     <!-- Message posting area-->
@@ -30,5 +30,6 @@
     </div>
 </div>
 <!-- Below clears the id from the session variable -->
-<a onclick="{{session.pop('ID',None)}}" id="logout-link" href="{{url_for('login')}}">Logout</a>
+<!-- onclick="{{session.pop('ID',None)}}" -->
+<a id="logout-link" href="{{url_for('login')}}">Logout</a>
 {% endblock %}

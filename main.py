@@ -25,16 +25,27 @@ def home():
 
 @app.route('/login/', methods=['GET','POST'])
 def login():
+    sessionMsg = session.get('ID')
+    userMsg = ""
+    pwdMsg = ""
     if session.get('ID') is not None:
         print("session id:" + session['ID'])
+        sessionMsg = session['ID']
+        userMsg = "Welcome " + getUsername(session['ID'])
+        pwdMsg = "already validated."
     elif session.get('ID') is None:
         print("No session ID exists atm.")
-    print()
     if request.method == 'POST':
+        if session.get('ID') is not None:
+            return render_template('login.html',
+            sessionMsg=sessionMsg,
+            userMsg=userMsg,
+            pwdMsg=pwdMsg)
+
         message1 = 'query finished'
         pwdMsg = "unknown"
-        userMsg = "-"
-        sessionMsg = "-"
+        #userMsg = "-"
+        #sessionMsg = "-"
         loginValid = False
         IDValid = False
         passwordValid = False
@@ -85,7 +96,10 @@ def login():
             pwdMsg=pwdMsg,
             sessionMsg=sessionMsg)
 
-    return render_template('login.html')
+    return render_template('login.html', 
+    sessionMsg=sessionMsg, 
+    userMsg=userMsg,
+    pwdMsg=pwdMsg)
 
 @app.route('/register/')
 def register():
@@ -93,6 +107,12 @@ def register():
 
 @app.route('/forum/')
 def forum():
+    if session.get('ID') is not None:
+        username = getUsername(session.get('ID'))
+        return render_template('forum.html',username=username)
+    #userName = "-"
+
+    #userName = getUsername(session.get('ID'))
     return render_template('forum.html')
 
 @app.route('/user/')
@@ -138,6 +158,17 @@ def getID(ID):
         print(IDs['ID'])
         ID=IDs['ID']
     return ID
+
+def getUsername(ID):
+    query = datastore_client.query(kind='user')
+    query.add_filter("ID", "=", ID)
+    result = query.fetch()
+    for IDs in result:
+        print(IDs['user_name'])
+        username=IDs['user_name']
+    return username
+
+
 
 def doesPasswordMatch(ID, password):
     query = datastore_client.query(kind="user")
