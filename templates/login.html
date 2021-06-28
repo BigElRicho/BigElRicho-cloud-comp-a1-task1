@@ -23,6 +23,8 @@
         <p>{{userMsg}}</p>
         <p>Password status: {{pwdMsg}}</p>
         <p>Session ID value: {{sessionMsg}}</p>
+        <br>
+        <a onclick="{{session.pop('ID', None)}}" href="{{url_for('login')}}">logout</a>
         
     </div>
 {% endblock %}

@@ -1,6 +1,4 @@
-from collections import UserList
 import datetime
-
 from flask import Flask, render_template, request, session
 from google.cloud import datastore
 
@@ -15,7 +13,7 @@ if __name__ == '__main__':
     # # the "static" directory. 
     # See: http://flask.pocoo.org/docs/1.0/quickstart/#static-files. Once deployed, 
     # App Engine itself will serve those files as configured in app.yaml.
-    app.run(debug=True)
+    app.run(host='127.0.0.1',debug=True)
 
 datastore_client = datastore.Client()
 
@@ -80,11 +78,12 @@ def login():
             session['ID'] = ID
             print("session['ID']= " + session['ID'])
             sessionMsg = session['ID']
-            return render_template('login.html', 
-            message1=message1, 
-            userMsg=userMsg, 
-            pwdMsg=pwdMsg,
-            sessionMsg=sessionMsg)
+            return render_template('forum.html')
+            # return render_template('login.html', 
+            # message1=message1, 
+            # userMsg=userMsg, 
+            # pwdMsg=pwdMsg,
+            # sessionMsg=sessionMsg)
         else:
             # if session['ID']:
             #     print(session['ID'])
@@ -101,19 +100,39 @@ def login():
     userMsg=userMsg,
     pwdMsg=pwdMsg)
 
-@app.route('/register/')
+@app.route('/register/', methods=['GET','POST'])
 def register():
-    return render_template('register.html')
+    message = ""
+    id = ""
+    username = ""
+    password = ""
+    imgName = ""
+    if request.method == "POST":
+        id = request.form['ID']
+        username = request.form['username']
+        password = request.form['password']
+        #imgName = request.form['userImage']
+        return render_template('register.html',
+        message = message,
+        ID = id,
+        username = username,
+        password = password)
 
-@app.route('/forum/')
+    return render_template('register.html',
+        message = message,
+        ID = id,
+        username = username,
+        password = password)
+
+@app.route('/forum/', methods=['GET','POST'])
 def forum():
+    username=""
     if session.get('ID') is not None:
-        username = getUsername(session.get('ID'))
+        print("Session['id'] on forum page load: " + session.get('ID'))
+        username = getUsername(session['ID'])
         return render_template('forum.html',username=username)
-    #userName = "-"
 
-    #userName = getUsername(session.get('ID'))
-    return render_template('forum.html')
+    return render_template('forum.html',username=username)
 
 @app.route('/user/')
 def user():
@@ -155,7 +174,7 @@ def getID(ID):
     query.add_filter("ID", "=", ID)
     result = query.fetch()
     for IDs in result:
-        print(IDs['ID'])
+        #print(IDs['ID'])
         ID=IDs['ID']
     return ID
 
@@ -164,7 +183,7 @@ def getUsername(ID):
     query.add_filter("ID", "=", ID)
     result = query.fetch()
     for IDs in result:
-        print(IDs['user_name'])
+        #print(IDs['user_name'])
         username=IDs['user_name']
     return username
 
@@ -175,8 +194,8 @@ def doesPasswordMatch(ID, password):
     query.add_filter("ID","=",ID)
     result = query.fetch()
     for IDs in result:
-        print(IDs['ID'] + IDs['password'])
-        print("ID given: "+ ID + " Password given: " + password)
+        #print(IDs['ID'] + IDs['password'])
+        #print("ID given: "+ ID + " Password given: " + password)
         if IDs['password'] == password:
             return True
         else:

@@ -2,27 +2,33 @@
 {% block content %}
     <div class="register">
         <h1>Task One: Register Page</h1>
-        <form action method="POST">
+        <form action="" enctype="multipart/form-data" method="POST">
             <label>Register</label>
             <br>
             <br>
             <label>ID</label>
-            <input type="text" id="ID" autofocus>
+            <input type="text" required name="ID" id="ID" autofocus>
             <br>
             <br>
             <label>Username</label>
-            <input type="text" id="username">
+            <input type="text" required name="username" id="username">
             <br>
             <br>
             <label>password</label>
-            <input type="text" id="password">
+            <input type="password" required name="password" id="password">
             <br>
             <br>
             <label>User image</label>
-            <input type="file" id="userImage">
+            <input type="file" name="userImage" id="userImage">
             <br>
             <br>
             <input type="submit" value="Register">
         </form>
+
+        <p>Status: {{message}}</p>
+        <p>ID: {{ID}}</p>
+        <p>username: {{username}}</p>
+        <p>password: {{password}}</p>
+        <img src="">
     </div>
 {% endblock %}
