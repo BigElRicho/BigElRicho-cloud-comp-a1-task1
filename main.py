@@ -1,6 +1,7 @@
 import datetime
 from flask import Flask, render_template, request, session
 from google.cloud import datastore
+from werkzeug.utils import redirect
 
 app = Flask(__name__)
 app.secret_key = "Julian"
@@ -17,6 +18,7 @@ if __name__ == '__main__':
 
 datastore_client = datastore.Client()
 
+# Routing methods vvv
 @app.route('/') 
 def home(): 
     return render_template('home.html') 
@@ -111,12 +113,19 @@ def register():
         id = request.form['ID']
         username = request.form['username']
         password = request.form['password']
+        # enable this when you get the image to store in google cloud storage.
         #imgName = request.form['userImage']
-        return render_template('register.html',
-        message = message,
-        ID = id,
-        username = username,
-        password = password)
+        if add_user(datastore_client,id,password,username) is True:
+            print("New user created.")
+            message = "New user created."
+            return redirect('../login/', 302)
+        else:
+            message = "User already exists. Try changing either/both username and ID."
+            return render_template('register.html',
+            message = message,
+            ID = id,
+            username = username,
+            password = password)
 
     return render_template('register.html',
         message = message,
@@ -154,7 +163,9 @@ def pageVisits():
 
     return render_template('pageVisits.html',times=times) 
 
+# Routing methods ^^^
 
+# Utility methods vvv
 def store_time(dt):
     entity = datastore.Entity(key=datastore_client.key('visit'))
     entity.update({
@@ -173,8 +184,9 @@ def getID(ID):
     query = datastore_client.query(kind='user')
     query.add_filter("ID", "=", ID)
     result = query.fetch()
+    ID=""
     for IDs in result:
-        #print(IDs['ID'])
+        print("getID() result: "+ IDs['ID'])
         ID=IDs['ID']
     return ID
 
@@ -182,12 +194,11 @@ def getUsername(ID):
     query = datastore_client.query(kind='user')
     query.add_filter("ID", "=", ID)
     result = query.fetch()
+    username = ""
     for IDs in result:
-        #print(IDs['user_name'])
+        print("getUsername() returns: " + IDs['user_name'])
         username=IDs['user_name']
     return username
-
-
 
 def doesPasswordMatch(ID, password):
     query = datastore_client.query(kind="user")
@@ -206,3 +217,58 @@ def getIDs():
     query.order = ["ID"]
     results = query.fetch()
     return results
+
+def add_post(client, subject, message, pictureName,username):
+    # Creates an incomplete key to say where the entity goes.
+    key = client.key('posts')
+    # Creates the entity object
+    post = datastore.Entity(key)
+    # Creates the properties of the entity to be stored.
+    post.update(
+        {
+            "subject": subject,
+            "message": message,
+            "username": username,
+            "pictureName": pictureName,
+            "post-date": datetime.datetime.utcnow(),
+        }
+    )
+    try:
+        client.put(post)
+        return post.key
+    except:
+        raise Exception("new post was unable to be put in datastore.")
+
+def add_user(client, id, password, username):
+    # Check if there is already a user for id and username.
+    idUnique = True
+    usernameUnique = True
+    isUserNew = True
+    try:
+        if getID(id) == id:
+            idUnique = False
+        if getUsername(id) == username:
+            usernameUnique == False
+        print(f"idUnique: {idUnique}\nusernameUnique: {usernameUnique}")
+    except:
+        raise Exception("Something went wrong checking the id")
+    if idUnique is False or usernameUnique is False:
+        isUserNew = False
+        print("isUserNew status = False")
+        return False
+    if isUserNew is True:
+        # Creates an incomplete key to say where the entity goes.
+        key = client.key('user')
+        # Creates the entity object
+        user = datastore.Entity(key)
+        # Creates the properties of the entity to be stored.
+        user.update(
+            {
+                "ID":id,
+                "password":password,
+                "user_name": username,
+            }
+        )
+        client.put(user)
+        return True
+
