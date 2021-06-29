@@ -15,20 +15,24 @@
             <lable>Forum Post</lable>
             <br><br>
             <label>Subject</label>
-            <Input type="text" id="subject" required autofocus>
+            <Input type="text" name="subject" id="subject" required autofocus>
             <br><br>
             <label>Message</label>
-            <input type="text" id="message" required>
+            <input type="text" name="message" id="message" required>
             <br><br>
             <label>Image Upload</label>
-            <input type="file" id="image">
+            <input type="file" name="image" id="image">
             <br><br>
             <input type="submit" value="Submit">
         </form>
     </div>
     <!--Forum message display area-->
     <div class="forumMessageDisplayArea>">
-        <p>The messages will be displayed here</p>
+        <h2>Forum Posts</h2>
+        {% for post in posts %}
+        <h3>{{post['subject']}}</h3>
+        <p>{{post['message']}}</p>
+        {% endfor %}
     </div>
 </div>
 <a onclick="{{session.pop('ID', None)}}" id="logout-link" href="{{url_for('login')}}">Logout</a>

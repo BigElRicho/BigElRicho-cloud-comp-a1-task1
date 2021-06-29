@@ -75,22 +75,13 @@ def login():
             print("loginvalid = true")
             loginValid = True
             print(loginValid)
-        # Below needs to be replaced with a redirect method.
-        if(loginValid==True):
+        if(loginValid == True):
             session['ID'] = ID
             print("session['ID']= " + session['ID'])
             sessionMsg = session['ID']
-            return render_template('forum.html')
-            # return render_template('login.html', 
-            # message1=message1, 
-            # userMsg=userMsg, 
-            # pwdMsg=pwdMsg,
-            # sessionMsg=sessionMsg)
+            return redirect('../forum/', 302)
+            #return render_template('forum.html')
         else:
-            # if session['ID']:
-            #     print(session['ID'])
-            # else:
-            #     print ("Session['ID'] is not there.")
             return render_template('login.html', 
             message1=message1, 
             userMsg=userMsg, 
@@ -135,13 +126,31 @@ def register():
 
 @app.route('/forum/', methods=['GET','POST'])
 def forum():
-    username=""
-    if session.get('ID') is not None:
-        print("Session['id'] on forum page load: " + session.get('ID'))
-        username = getUsername(session['ID'])
-        return render_template('forum.html',username=username)
+    username = ""
+    subject = ""
+    message = ""
+    posts = ""
 
-    return render_template('forum.html',username=username)
+    if session.get('ID') is not None:
+        print("Session['id'] on forum page load: " + session['ID'])
+        username = getUsername(session['ID'])
+        posts = getUserPosts(session.get('ID'))
+        return render_template('forum.html',
+        username=username,
+        posts=posts)
+    
+    if request.form == 'POST':
+        subject = request.form['subject']
+        message = request.form['message']
+        image = " "
+        add_post(datastore_client, subject, message, image, session.get('ID'))
+        return render_template('forum.html',
+        username=username,
+        posts=posts)
+
+    return render_template('forum.html',
+    username=username, 
+    posts=posts)
 
 @app.route('/user/')
 def user():
@@ -218,7 +227,7 @@ def getIDs():
     results = query.fetch()
     return results
 
-def add_post(client, subject, message, pictureName,username):
+def add_post(client, subject, message, imageName, id):
     # Creates an incomplete key to say where the entity goes.
     key = client.key('posts')
     # Creates the entity object
@@ -228,9 +237,9 @@ def add_post(client, subject, message, pictureName,username):
         {
             "subject": subject,
             "message": message,
-            "username": username,
-            "pictureName": pictureName,
-            "post-date": datetime.datetime.utcnow(),
+            "image_name": imageName,
+            "posting_datetime": datetime.datetime.now(),
+            "user_id":id,
         }
     )
     try:
@@ -271,4 +280,24 @@ def add_user(client, id, password, username):
         )
         client.put(user)
         return True
+
+def getUserPosts(id):
+    query = datastore_client.query(kind='posts')
+    query.add_filter("user_id","=",id)
+    #query.order = ["-post_datetime"]
+    result = query.fetch()
+    # for posts in result:
+    #     print(posts['subject'])
+    #     print(posts['message'])
+    return result
+
+def getAllForumPosts():
+    query = datastore_client.query(kind='posts')
+    query.order = ["-post_datetime"]
+    result = query.fetch()
+    # for posts in result:
+    #     print(posts['subject'])
+    #     print(posts['message'])
+    return result
+
 
