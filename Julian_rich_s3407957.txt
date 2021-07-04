@@ -1,0 +1,12 @@
+Name: Julian Rich
+Student No: s3407957
+
+Task 3:
+
+I'd like to develop a delivery analytics program that utilises map/positioning 
+AWS API.
+The goal would be to track my delivery time for a specified time period (day, 
+week, month or year/s), how long I spend being idle in a single location
+average speed and other analytics that could be interesting concerning time,
+distance and long term analytics of the occupation e.g. average time in one position.
+Would rely heavily on position/map services and cloud storage.

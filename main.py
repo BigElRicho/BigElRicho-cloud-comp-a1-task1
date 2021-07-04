@@ -1,7 +1,7 @@
 import datetime
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, redirect
 from google.cloud import datastore
-from werkzeug.utils import redirect
+#from werkzeug.utils import redirect
 
 app = Flask(__name__)
 app.secret_key = "Julian"
@@ -14,7 +14,7 @@ if __name__ == '__main__':
     # # the "static" directory. 
     # See: http://flask.pocoo.org/docs/1.0/quickstart/#static-files. Once deployed, 
     # App Engine itself will serve those files as configured in app.yaml.
-    app.run(host='127.0.0.1',debug=True)
+    app.run(debug=True)
 
 datastore_client = datastore.Client()
 
@@ -23,12 +23,12 @@ datastore_client = datastore.Client()
 def home(): 
     return render_template('home.html') 
 
-@app.route('/login/', methods=['GET','POST'])
+@app.route('/login', methods=['GET','POST'])
 def login():
     sessionMsg = session.get('ID')
     userMsg = ""
     pwdMsg = ""
-    if session.get('ID') is not None:
+    if session.get('ID') != "" and session.get('ID') is not None:
         print("session id:" + session['ID'])
         sessionMsg = session['ID']
         userMsg = "Welcome " + getUsername(session['ID'])
@@ -71,6 +71,7 @@ def login():
                 passwordValid = True
             else:
                 pwdMsg = "password incorrect"
+                userMsg = ""
         if(IDValid == True and passwordValid == True):
             print("loginvalid = true")
             loginValid = True
@@ -79,8 +80,7 @@ def login():
             session['ID'] = ID
             print("session['ID']= " + session['ID'])
             sessionMsg = session['ID']
-            return redirect('../forum/', 302)
-            #return render_template('forum.html')
+            return redirect('../forum', 302)
         else:
             return render_template('login.html', 
             message1=message1, 
@@ -93,7 +93,7 @@ def login():
     userMsg=userMsg,
     pwdMsg=pwdMsg)
 
-@app.route('/register/', methods=['GET','POST'])
+@app.route('/register', methods=['GET','POST'])
 def register():
     message = ""
     id = ""
@@ -124,45 +124,103 @@ def register():
         username = username,
         password = password)
 
-@app.route('/forum/', methods=['GET','POST'])
+@app.route('/forum', methods=['GET','POST'])
 def forum():
-    username = ""
-    subject = ""
-    message = ""
-    posts = ""
-
-    if session.get('ID') is not None:
-        print("Session['id'] on forum page load: " + session['ID'])
-        username = getUsername(session['ID'])
-        posts = getUserPosts(session.get('ID'))
-        return render_template('forum.html',
-        username=username,
-        posts=posts)
-    
-    if request.form == 'POST':
-        subject = request.form['subject']
-        message = request.form['message']
-        image = " "
-        add_post(datastore_client, subject, message, image, session.get('ID'))
-        return render_template('forum.html',
-        username=username,
-        posts=posts)
-
-    return render_template('forum.html',
-    username=username, 
-    posts=posts)
-
-@app.route('/user/')
-def user():
-    userMsg = "No user currently logged in."
+    posts = getAllForumPosts(10)
+    userMsg = ""
     if 'ID' in session:
-        userID = session.get('ID')
-        userMsg = userID
+        userMsg = session['ID']
+        print("UserMsg in forum page: " + userMsg)
     
-    return render_template('user.html',
-    userMsg=userMsg)
+    return render_template('forum.html',
+    userMsg = userMsg,
+    posts = posts)
 
-@app.route('/pageVisits/')
+@app.route('/user', methods = ['GET','POST'])
+def user():
+    userId = ""
+    posts = ""
+    userMsg = "No user currently logged in."
+    pwdMsg = ""
+    
+    if 'ID' in session:
+        print("session['ID'] contains value on user page load.")
+        userMsg = session['ID']
+        userId = session['ID']
+        sessionMsg = session.get('ID')
+        posts = getUserPosts(userId)
+        return render_template('user.html',
+        userMsg=userMsg, posts=posts)
+
+    # return render_template('user.html',
+    # userMsg=userMsg, posts=posts)
+
+    #Login part-----
+    
+    if session.get('ID') != "" and session.get('ID') is not None:
+        print("session id:" + session['ID'])
+        sessionMsg = session['ID']
+        userMsg = "Welcome " + getUsername(session['ID'])
+        pwdMsg = "already validated."
+    elif session.get('ID') is None:
+        print("No session ID exists atm.")
+    if request.method == 'POST':
+        if session.get('ID') is not None:
+            return render_template('user.html',
+            sessionMsg=sessionMsg,
+            userMsg=userMsg,
+            pwdMsg=pwdMsg)
+
+        message1 = 'query finished'
+        pwdMsg = "unknown"
+        #userMsg = "-"
+        #sessionMsg = "-"
+        loginValid = False
+        IDValid = False
+        passwordValid = False
+        ID = request.form['ID']
+        pwd = request.form['password']
+        #userID = getID(ID)
+        #print("userID: " + ID)
+        if ID == "":
+            userMsg = "No ID provided."
+        else:
+            if getID(ID) == None:
+                print("UserID not known.")
+                userMsg = "UserID not known."
+            else:
+                print("A matching ID was found.")
+                userMsg = "Welcome " + getID(ID)
+                IDValid = True
+        if pwd == "":
+            pwdMsg = "No password given"
+        else:
+            if doesPasswordMatch(ID,pwd):
+                pwdMsg = "password correct."
+                passwordValid = True
+            else:
+                pwdMsg = "password incorrect"
+                userMsg = ""
+        if(IDValid == True and passwordValid == True):
+            print("loginvalid = true")
+            loginValid = True
+            print(loginValid)
+        if(loginValid == True):
+            session['ID'] = ID
+            print("session['ID']= " + session['ID'])
+            sessionMsg = session['ID']
+            return render_template('user.html')
+        else:
+            return render_template('user.html', 
+            message1=message1, 
+            userMsg=userMsg, 
+            pwdMsg=pwdMsg,
+            sessionMsg=sessionMsg)  
+
+    return render_template('user.html',
+    userMsg=userMsg, posts=posts)  
+
+@app.route('/pageVisits')
 def pageVisits():
      #Store the current access time in Datastore.
     store_time(datetime.datetime.now())
@@ -291,13 +349,15 @@ def getUserPosts(id):
     #     print(posts['message'])
     return result
 
-def getAllForumPosts():
+def getAllForumPosts(postAmount):
     query = datastore_client.query(kind='posts')
-    query.order = ["-post_datetime"]
-    result = query.fetch()
-    # for posts in result:
-    #     print(posts['subject'])
-    #     print(posts['message'])
+    #query.order = ["-post_datetime"]
+    result = list(query.fetch(postAmount))
+    for posts in result:
+        print(posts['subject'] + posts['message'])
     return result
 
-
+# def changePassword(id, oldPassword):
+#     query = datastore_client.query(kind = 'user')
+#     query.add_filter("user_id")
+#     result = (query.fetch)

@@ -1,17 +1,18 @@
 {% extends "layout.html" %}
 {% block content %}
 <div class="forum">
+
     <h1>Task One: Forum Page</h1>
+
     <!-- User info area-->
     <div class="forumUserArea">
-        <a href="{{url_for('user')}}">
-            Current User: {{session.get('ID')}}
-        </a>
-        <img src="">
+        <a href="{{url_for('user')}}">{{userMsg}}</a>
+        <!-- <img src=""> -->
     </div>
+
     <!-- Message posting area-->
     <div class="forumMessagePostingArea">
-        <form action="" method="POST">
+        <form method="POST">
             <lable>Forum Post</lable>
             <br><br>
             <label>Subject</label>
@@ -26,14 +27,20 @@
             <input type="submit" value="Submit">
         </form>
     </div>
+
+    <p>Status: {{statusMessage}}</p>
+
     <!--Forum message display area-->
     <div class="forumMessageDisplayArea>">
         <h2>Forum Posts</h2>
         {% for post in posts %}
-        <h3>{{post['subject']}}</h3>
-        <p>{{post['message']}}</p>
+        <h3>{{ post['subject'] }}</h3>
+        <p>{{ post['message'] }}</p>
+        <p>Post author: {{ post['user_id']}}</p>
         {% endfor %}
     </div>
+
+    <a onclick="{{session.pop('ID', None)}}" href="{{url_for('login')}}">Logout</a>
+
 </div>
-<a onclick="{{session.pop('ID', None)}}" id="logout-link" href="{{url_for('login')}}">Logout</a>
 {% endblock %}

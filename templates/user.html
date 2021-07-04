@@ -2,6 +2,29 @@
 {% block content %}
     <div class="user">
         <h1>Task One: User page</h1>
+        <br>
+        <form id="form" action="" method="post">
+            <label>Login Form</label><br><br>
+            <label for="id">ID</label>
+            <input type="text" id="ID" name="ID" autofocus size="29" ><br><br>
+            <label for="id">Password:</label>
+            <input type="password" id="password" name="password"><br><br>
+            <input type="submit" value="Login">
+        </form>
+
+        <p>{{message1}}</p>
+        <!-- Below works. -->
+        <!-- {% for x in userList %}
+            {% if x['user_name']=='Julian Rich0'%}
+            <p>{{ "Welcome " + x['user_name'] }}</p>
+            {%endif%}
+        {% endfor %} -->
+
+        <p>{{userMsg}}</p>
+        <p>Password status: {{pwdMsg}}</p>
+        <p>Session ID value: {{sessionMsg}}</p>
+        <br>
+
         <p>Current User: {{userMsg}}</p>
         <form action method="POST">
             <label>Change password</label>
@@ -18,9 +41,17 @@
             <input type="submit" value="Change password">
         </form>
 
+        
+
+        <p>Status: {{message}}</p>
+
         <div class=userPostEditArea>
             <h2>Message Post Area</h2>
-
+                {% for post in posts %}
+                <h3>{{post['subject']}}</h3>
+                <p>{{post['message']}}</p>
+                {% endfor %}
+            </div>
         </div>
     </div>
 {% endblock %}
